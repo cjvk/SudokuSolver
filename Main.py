@@ -6,11 +6,20 @@ from Puzzle import SudokuPuzzle
 from Solver import Solver
 import SamplePuzzles
 
-puzzle2 = SudokuPuzzle(SamplePuzzles.NEWSPAPER_PUZZLE_02_29_2016)
-puzzle2.printPuzzle()
-s2 = Solver(puzzle2)
-s2.solve()
-print 'solved puzzle'
-puzzle2.printPuzzle()
+PUZZLES = (
+    #SamplePuzzles.getById('test1', SamplePuzzles.TEST_PUZZLES),
+    #SamplePuzzles.getById('sjm20160229'),
+    #SamplePuzzles.getById('sjm20160302'),
+    SamplePuzzles.getById('ss20160302e'),
+)
+
+for puzzle in PUZZLES:
+    p = SudokuPuzzle(puzzle.getPuzzle())
+    print puzzle.getName()
+    p.printPuzzle()
+    s = Solver(p)
+    s.solve()
+    print 'solved puzzle'
+    p.printPuzzle()
 
 exit()

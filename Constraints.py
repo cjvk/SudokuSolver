@@ -1,8 +1,11 @@
 import Solver
 
-class NoRowDuplicates:
+class Constraint:
     def __init__(self, puzzle):
         self.puzzle = puzzle
+    
+
+class NoRowDuplicates(Constraint):
     def process(self, queueItem):
         row = queueItem.row
         col = queueItem.column
@@ -10,9 +13,7 @@ class NoRowDuplicates:
             val = self.puzzle.getSquare(row,col).getSingleValue()
             for square in rowSquares8(self.puzzle, queueItem):
                 square.eliminate(val)
-class NoColumnDuplicates:
-    def __init__(self, puzzle):
-        self.puzzle = puzzle
+class NoColumnDuplicates(Constraint):
     def process(self, queueItem):
         row = queueItem.row
         col = queueItem.column
@@ -20,9 +21,7 @@ class NoColumnDuplicates:
             val = self.puzzle.getSquare(row,col).getSingleValue()
             for square in columnSquares8(self.puzzle, queueItem):
                 square.eliminate(val)
-class NoBoxDuplicates:
-    def __init__(self, puzzle):
-        self.puzzle = puzzle
+class NoBoxDuplicates(Constraint):
     def process(self, queueItem):
         row = queueItem.row
         col = queueItem.column
@@ -30,10 +29,7 @@ class NoBoxDuplicates:
             val = self.puzzle.getSquare(row,col).getSingleValue()
             for square in boxSquares8(self.puzzle, queueItem):
                 square.eliminate(val)
-
-class ProcessOfElimination:
-    def __init__(self,puzzle):
-        self.puzzle = puzzle
+class ProcessOfElimination(Constraint):
     def process(self, queueItem):
         # deduction within my row, column, box
         for value in range(1,10):
