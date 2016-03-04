@@ -1,10 +1,16 @@
-import Solver
+class SudokuConstraintViolationError(RuntimeError):
+    pass
 
 class Constraint:
     def __init__(self, puzzle):
         self.puzzle = puzzle
     
-
+class AllCannotBeEliminated(Constraint):
+    def process(self, queueItem):
+        row = queueItem.row
+        col = queueItem.column
+        if self.puzzle.getSquare(row,col).countRemaining() is 0:
+            raise SudokuConstraintViolationError('contradiction')
 class NoRowDuplicates(Constraint):
     def process(self, queueItem):
         row = queueItem.row
@@ -39,7 +45,7 @@ class ProcessOfElimination(Constraint):
                     if square.isPossible(value):
                         squaresWithValuePossible.append(square)
                 if len(squaresWithValuePossible) == 0:
-                    raise ValueError('contradiction')
+                    raise SudokuConstraintViolationError('contradiction')
                 elif len(squaresWithValuePossible) == 1:
                     squaresWithValuePossible[0].select(value)
                 else:

@@ -10,10 +10,12 @@ class InitialSquare(Square):
         if value < 1 or value > 9:
             raise ValueError('Sudoku only works 1-9');
         self.value = value
-        self.possibleValues = [0] * 9
-        self.possibleValues[value-1] = 1
+        self.__possibleValues = [0] * 9
+        self.__possibleValues[value-1] = 1
     def reset(self):
         pass
+    def countRemaining(self):
+        return 1
     def hasSingleValue(self):
         return True
     def getSingleValue(self):
@@ -28,27 +30,36 @@ class InitialSquare(Square):
         pass
     def isPossible(self, value):
         return self.value == value
+    def valuesRemaining(self):
+        print 'this should not be called, but return a value anyway'
+        return (self.value,)
     pass
 
 class DerivedSquare(Square):
     "Derived square, initially empty"
     def __init__(self):
-        self.possibleValues = [1] * 9
+        self.__possibleValues = [1] * 9
         self.dirty = False
     def reset(self):
         self.__init__()
-    def __countRemaining(self):
-        return self.possibleValues.count(1)
+    def countRemaining(self):
+        return self.__possibleValues.count(1)
     def hasSingleValue(self):
-        return self.__countRemaining() is 1
+        return self.countRemaining() is 1
     def getSingleValue(self):
         if not self.hasSingleValue():
             raise ValueError('do not call getSingleValue if no single value!')
-        index = self.possibleValues.index(1)
+        index = self.__possibleValues.index(1)
         return index + 1
     def isPossible(self, value):
         index = value - 1
-        return self.possibleValues[index] == 1
+        return self.__possibleValues[index] == 1
+    def valuesRemaining(self):
+        valueList = []
+        for value in range(1,10):
+            if self.isPossible(value):
+                valueList.append(value)
+        return tuple(valueList)
     def select(self, arg):
         eliminationList = list(range(1,10))
         eliminationList.remove(arg)
@@ -63,8 +74,8 @@ class DerivedSquare(Square):
             if arg < 1 or arg > 9:
                 raise ValueError('Sudoku only works 1-9');
             index = arg - 1
-            if self.possibleValues[index] == 1:
-                self.possibleValues[index] = 0
+            if self.__possibleValues[index] == 1:
+                self.__possibleValues[index] = 0
                 self.dirty = True
     def isDirty(self):
         return self.dirty

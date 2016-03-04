@@ -5,6 +5,7 @@ from Squares import DerivedSquare
 class SudokuPuzzle:
     def __validateInitialStrings(self, initialStrings):
         if not isinstance(initialStrings, (list, tuple)):
+
             raise ValueError('Puzzle description must be list or tuple')
         if len(initialStrings) != 9:
             raise ValueError('Sudoku has 9 rows')

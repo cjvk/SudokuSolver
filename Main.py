@@ -12,7 +12,6 @@ PUZZLES = (
     #SamplePuzzles.getById('sjm20160302'),
     SamplePuzzles.getById('ss20160302e'),
 )
-
 for puzzle in PUZZLES:
     p = SudokuPuzzle(puzzle.getPuzzle())
     print puzzle.getName()
