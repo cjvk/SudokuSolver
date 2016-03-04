@@ -4,7 +4,52 @@ class SudokuConstraintViolationError(RuntimeError):
 class Constraint:
     def __init__(self, puzzle):
         self.puzzle = puzzle
-    
+
+class DoubleDoubleBox(Constraint):
+    def process(self, queueItem):
+        f = boxSquares8
+        row = queueItem.row
+        col = queueItem.column
+        constraintSquare = self.puzzle.getSquare(row,col)
+        if constraintSquare.countRemaining() is 2:
+            twoValuesRemaining = constraintSquare.valuesRemaining()
+            othersquares = f(self.puzzle, queueItem)
+            for i in range(0, len(othersquares)):
+                if othersquares[i].valuesRemaining() == twoValuesRemaining:
+                    # bingo!
+                    for j in range(0, len(othersquares)):
+                        if i != j:
+                            othersquares[j].eliminate(list(twoValuesRemaining))
+class DoubleDoubleColumn(Constraint):
+    def process(self, queueItem):
+        f = columnSquares8
+        row = queueItem.row
+        col = queueItem.column
+        constraintSquare = self.puzzle.getSquare(row,col)
+        if constraintSquare.countRemaining() is 2:
+            twoValuesRemaining = constraintSquare.valuesRemaining()
+            othersquares = f(self.puzzle, queueItem)
+            for i in range(0, len(othersquares)):
+                if othersquares[i].valuesRemaining() == twoValuesRemaining:
+                    # bingo!
+                    for j in range(0, len(othersquares)):
+                        if i != j:
+                            othersquares[j].eliminate(list(twoValuesRemaining))
+class DoubleDoubleRow(Constraint):
+    def process(self, queueItem):
+        f = rowSquares8
+        row = queueItem.row
+        col = queueItem.column
+        constraintSquare = self.puzzle.getSquare(row,col)
+        if constraintSquare.countRemaining() is 2:
+            twoValuesRemaining = constraintSquare.valuesRemaining()
+            othersquares = f(self.puzzle, queueItem)
+            for i in range(0, len(othersquares)):
+                if othersquares[i].valuesRemaining() == twoValuesRemaining:
+                    # bingo!
+                    for j in range(0, len(othersquares)):
+                        if i != j:
+                            othersquares[j].eliminate(list(twoValuesRemaining))
 class AllCannotBeEliminated(Constraint):
     def process(self, queueItem):
         row = queueItem.row

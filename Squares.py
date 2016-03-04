@@ -31,7 +31,6 @@ class InitialSquare(Square):
     def isPossible(self, value):
         return self.value == value
     def valuesRemaining(self):
-        print 'this should not be called, but return a value anyway'
         return (self.value,)
     pass
 

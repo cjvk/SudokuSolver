@@ -34,6 +34,36 @@ class PuzzleDescription:
 
 SAMPLE_PUZZLES = (
     PuzzleDescription(
+        id='ss20160303h',
+        name='sudokusaviour, 3/3/2016, hard',
+        puzzle=(
+            ' 9   5 27',
+            '         ',
+            ' 439  8  ',
+            '5 84  26 ',
+            '   5 3   ',
+            ' 24  65 9',
+            '  5  194 ',
+            '         ',
+            '41 2   5 ',
+        )
+    ),
+    PuzzleDescription(
+        id='ss20160301e',
+        name='sudokusaviour, 3/1/2016, easy',
+        puzzle=(
+            '     6258',
+            '    7 1  ',
+            '  5 4   9',
+            '   4    3',
+            '5 6 8 7 1',
+            '9    7   ',
+            '8   9 4  ',
+            '  2 5    ',
+            '7692     ',
+        )
+    ),
+    PuzzleDescription(
         id='ss20160302e',
         name='sudokusaviour, 3/2/2016, easy',
         puzzle=(
