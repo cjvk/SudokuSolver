@@ -34,6 +34,51 @@ class PuzzleDescription:
 
 SAMPLE_PUZZLES = (
     PuzzleDescription(
+        id='worldshardest',
+        name='http://www.telegraph.co.uk/news/science/science-news/9359579/Worlds-hardest-sudoku-can-you-crack-it.html',
+        puzzle=(
+            '8        ',
+            '  36     ',
+            ' 7  9 2  ',
+            ' 5   7   ',
+            '    457  ',
+            '   1   3 ',
+            '  1    68',
+            '  85   1 ',
+            ' 9    4  ',
+        )
+    ),
+    PuzzleDescription(
+        id='7sudokuvd1',
+        name='http://www.7sudoku.com/very-difficult, topleft',
+        puzzle=(
+            '2     63 ',
+            ' 1   3   ',
+            '  5  7  9',
+            ' 4 7   6 ',
+            '  38 91  ',
+            ' 2   5 4 ',
+            '1  9  4  ',
+            '   5   9 ',
+            ' 56     7',
+        )
+    ),
+    PuzzleDescription(
+        id='ss20160302h',
+        name='sudokusaviour, 3/2/2016, hard',
+        puzzle=(
+            '  92    5',
+            '  4 8   7',
+            '7    34  ',
+            ' 3  9 12 ',
+            '   5 1   ',
+            ' 48 6  5 ',
+            '  14    3',
+            '4   5 9  ',
+            '6    85  ',
+        )
+    ),
+    PuzzleDescription(
         id='ss20160303h',
         name='sudokusaviour, 3/3/2016, hard',
         puzzle=(

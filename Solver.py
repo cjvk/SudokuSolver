@@ -106,22 +106,15 @@ class Solver:
                     debug('guess: (i,j,value)=(%d,%d,%d)' % (i,j,value))
                     # clone the puzzle
                     puzzleClone = SudokuPuzzle(self.puzzle.initialStrings)
+                    # copy the state of all the squares
+                    for ii in range(1,10):
+                        for jj in range(1,10):
+                            mysquare = self.puzzle.getSquare(ii,jj)
+                            clonesquare = puzzleClone.getSquare(ii,jj)
+                            clonesquare.copyStateFrom(mysquare)
                     # apply the guess
                     puzzleClone.getSquare(i,j).select(value)
                     TOTAL_GUESSES_MADE = TOTAL_GUESSES_MADE + 1
-                    # update the initial strings
-                    c = puzzleClone.initialStrings[i-1][j-1]
-                    if not c == ' ':
-                        raise Constraints.SudokuConstraintViolationError('should be empty')
-                    # strings and tuples are immutable
-                    rowstring = puzzleClone.initialStrings[i-1]
-                    rowlist = list(rowstring)
-                    rowlist[j-1] = str(value)
-                    newrowstring = "".join(rowlist)
-                    tupleaslist = list(puzzleClone.initialStrings)
-                    tupleaslist[i-1]=newrowstring
-                    puzzleClone.initialStrings = tuple(tupleaslist)
-                    # strings and tuples are immutable
                     # and solve
                     debugPrintPuzzle(puzzleClone)
                     newSolver = Solver(puzzleClone, self.progressTuple)
@@ -129,6 +122,7 @@ class Solver:
                         possibleSolution = newSolver.solve()
                     except Constraints.SudokuConstraintViolationError:
                         #debug('not right')
+                        self.puzzle.getSquare(i,j).eliminate(value)
                         continue
                     print 'right'
                     # possibleSolution seems to have the correct solution
@@ -156,13 +150,12 @@ class Solver:
                 self.process(queueItem)
             if self.doneYet():
                 print 'done!'
-                self.puzzle.printPuzzle()
                 # arguably this should short circuit to the original caller
-                # perhaps a special SudokuSolutionException??
                 break
             self.enqueueAllDirtyAndMarkClean()
         time_end = time.time()
-        print 'solving finished, elapsed time = ' + str(time_end-time_start)
+        args = (time_end-time_start, TOTAL_GUESSES_MADE)
+        print 'solving finished, elapsed time = %f, %d total guesses' % args
         return self.puzzle
     def enqueueAllDirtyAndMarkClean(self):
         for i in range(1,10):

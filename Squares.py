@@ -32,6 +32,8 @@ class InitialSquare(Square):
         return self.value == value
     def valuesRemaining(self):
         return (self.value,)
+    def copyStateFrom(self, otherSquare):
+        pass
     pass
 
 class DerivedSquare(Square):
@@ -53,6 +55,11 @@ class DerivedSquare(Square):
     def isPossible(self, value):
         index = value - 1
         return self.__possibleValues[index] == 1
+    def copyStateFrom(self, otherSquare):
+        keep = otherSquare.valuesRemaining()
+        for possibleValue in range(1,10):
+            if not possibleValue in keep:
+                self.eliminate(possibleValue)
     def valuesRemaining(self):
         valueList = []
         for value in range(1,10):
