@@ -50,6 +50,7 @@ class Solver:
         self.constraintQueue.append(Constraints.DoubleDoubleRow(self.puzzle))
         self.constraintQueue.append(Constraints.DoubleDoubleColumn(self.puzzle))
         self.constraintQueue.append(Constraints.DoubleDoubleBox(self.puzzle))
+        #self.constraintQueue.append(Constraints.PairProcessOfElimination(self.puzzle))
     def getDepth(self):
         return self.progressTuple[len(self.progressTuple)-1].depth
     def getProgress(self):

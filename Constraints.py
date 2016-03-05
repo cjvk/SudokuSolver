@@ -95,6 +95,51 @@ class ProcessOfElimination(Constraint):
                     squaresWithValuePossible[0].select(value)
                 else:
                     pass
+class PairProcessOfElimination(Constraint):
+    """
+    (The pair version)
+    For example, in a box suppose squares i and j are the only
+    two squares which can have values v1 and v2. In other words,
+    v1 and v2 have been eliminated as possibilities for all
+    other squares.
+    Then, you can eliminate all other values for those squares
+    besides v1 and v2.
+
+    This differs from DoubleDoubleBox et al because those
+    examine for equality two squares and do not look at other
+    squares, whereas this one does not look at the entirety
+    of any square's allowed values and does look at other
+    squares allowed values, within the box.
+
+    This constraint would work in tandem with the DoubleDouble
+    family of constraints, because the elimination marks as
+    dirty, and the DoubleDouble family would reduce further.
+    """
+    def process(self, queueItem):
+        for value1 in range(1,10):
+            for value2 in range(1,10):
+                if value1 == value2:
+                    continue
+                for f in (rowSquares9, columnSquares9, boxSquares9):
+                    squaresWithValue1Possible = []
+                    squaresWithValue2Possible = []
+                    for square in f(self.puzzle, queueItem):
+                        if square.isPossible(value1):
+                            squaresWithValue1Possible.append(square)
+                        if square.isPossible(value2):
+                            squaresWithValue2Possible.append(square)
+                    len1 = len(squaresWithValue1Possible)
+                    len2 = len(squaresWithValue2Possible)
+                    if len1 == 2 and len2 == 2:
+                        s1 = squaresWithValue1Possible
+                        s2 = squaresWithValue2Possible
+                        if s1[0] == s2[0] and s1[1] == s2[1]:
+                            eliminateThese = list(range(1,10))
+                            eliminateThese.remove(value1)
+                            eliminateThese.remove(value2)
+                            for porfin in s1:
+                                porfin.eliminate(eliminateThese)
+    pass
 
 def rowSquares8(puzzle, queueItem):
     squareList = []
@@ -149,4 +194,5 @@ def boxSquares9(puzzle, queueItem):
         for j in cols:
             squareList.append(puzzle.getSquare(i,j))
     return squareList
+
 
