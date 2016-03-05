@@ -49,6 +49,21 @@ SAMPLE_PUZZLES = (
         )
     ),
     PuzzleDescription(
+        id='sjm20160304',
+        name='Mercury News, 3/4/2016, difficulty: 4/4',
+        puzzle=(
+            '27   1 46',
+            ' 5 2   3 ',
+            '   3 6   ',
+            '6       7',
+            ' 4     2 ',
+            '9       3',
+            '   19    ',
+            ' 2   5 7 ',
+            '7  6   8 ',
+        )
+    ),
+    PuzzleDescription(
         id='7sudokuvd1',
         name='http://www.7sudoku.com/very-difficult, topleft',
         puzzle=(
