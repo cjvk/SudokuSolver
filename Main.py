@@ -25,6 +25,7 @@ for puzzle in PUZZLES:
     s = Solver(p)
     s.solve()
     print 'solved puzzle'
+    print 'name:', puzzle.getName()
     p.printPuzzle()
 
 exit()
