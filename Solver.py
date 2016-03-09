@@ -6,6 +6,7 @@ import Profiler
 # performance data, "worldshardest"
 # solving finished, elapsed time = 154.645702, 69215 total guesses
 # solving finished, elapsed time = 114.222310, 69215 total guesses
+# solving finished, elapsed time = 87.261561, 69215 total guesses
 
 class QueueItem:
     def __init__(self, row, column):
@@ -21,35 +22,26 @@ class Progress:
     def __init__(self, depth=0):
         # depth is 0-indexed
         self.depth = depth
-        self.guesses = None
         self.totalGuesses = None
         # currentGuessIndex is 0-indexed
         self.currentGuessIndex = None
 
 class Solver:
     def __init__(self, puzzle, progressTuple=None):
-        Profiler.startStopWatch('Solver.__init__')
         self.puzzle = puzzle
         if progressTuple is None:
             self.progressTuple = (Progress(),)
         else:
-            Profiler.startStopWatch('Solver.__init__ > progress tuple')
             tempProgressList = []
             for pt in progressTuple:
                 ptcopy = Progress(pt.depth)
                 ptcopy.currentGuessIndex = pt.currentGuessIndex
                 tempGuessList = []
-                for ptguess in pt.guesses:
-                    ptguesscopy = (ptguess[0], ptguess[1], ptguess[2])
-                    tempGuessList.append(ptguesscopy)
-                ptcopy.guesses = tuple(tempGuessList)
                 ptcopy.totalGuesses = pt.totalGuesses
                 tempProgressList.append(ptcopy)
             tempProgressList.append(Progress(len(progressTuple)))
             self.progressTuple = tuple(tempProgressList)
-            Profiler.stopStopWatch('Solver.__init__ > progress tuple')
         if self.progressTuple[len(self.progressTuple)-1].depth > MAX_SEARCH_DEPTH:
-            Profiler.stopStopWatch('Solver.__init__')
             raise Constraints.SudokuConstraintViolationError('max depth reached')
         self.queue = []
         self.constraintQueue1 = []
@@ -62,7 +54,6 @@ class Solver:
         self.constraintQueue1.append(Constraints.DoubleDoubleColumn(self.puzzle))
         self.constraintQueue1.append(Constraints.DoubleDoubleBox(self.puzzle))
         #self.constraintQueue1.append(Constraints.PairProcessOfElimination(self.puzzle))
-        Profiler.stopStopWatch('Solver.__init__')
     def getDepth(self):
         return self.progressTuple[len(self.progressTuple)-1].depth
     def getProgress(self):
@@ -120,7 +111,6 @@ class Solver:
                 # a complete guess list, ordered by degree ascending
                 # one guess is (i, j, value)
                 guessList = self.guessList()
-                self.getProgress().guesses = guessList
                 self.getProgress().totalGuesses = len(guessList)
                 # note there should be many correct guesses - one per node!
                 correctGuess = None
@@ -150,9 +140,7 @@ class Solver:
                     debugPrintPuzzle(puzzleClone)
 
                     # and solve
-                    Profiler.startStopWatch('guessPreparation > lookahead solver creation')
                     newSolver = Solver(puzzleClone, self.progressTuple)
-                    Profiler.stopStopWatch('guessPreparation > lookahead solver creation')
                     Profiler.stopStopWatch('guessPreparation')
                     try:
                         possibleSolution = newSolver.solve()
@@ -191,7 +179,6 @@ class Solver:
         time_end = time.time()
         args = (time_end-time_start, TOTAL_GUESSES_MADE)
         print 'solving finished, elapsed time = %f, %d total guesses' % args
-        #Profiler.printAll()
         return self.puzzle
     def runPOEConstraint(self):
         # (1,1) (2,4) (3,7)
@@ -201,14 +188,12 @@ class Solver:
         for xy in ((1,1),(2,4),(3,7),(4,2),(5,5),(6,8),(7,3),(8,6),(9,9)):
             poe.process(QueueItem(xy[0],xy[1]))
     def enqueueAllDirtyAndMarkClean(self):
-        Profiler.startStopWatch('enqueueAllDirtyAndMarkClean()')
         for i in range(1,10):
             for j in range(1,10):
                 if self.puzzle.getSquare(i,j).isDirty():
                     queueItem = QueueItem(i,j)
                     self.enqueue(queueItem)
                     self.puzzle.getSquare(i,j).clean()
-        Profiler.stopStopWatch('enqueueAllDirtyAndMarkClean()')
     def guessList(self):
         "return a complete guess list, ordered by degree ascending"
         # a single guess is a tuple (i, j, value)
@@ -288,10 +273,10 @@ class Solver:
         factor = 1.0
         for progress in self.progressTuple:
             depth = progress.depth
-            if progress.guesses is None or progress.currentGuessIndex is None:
+            if progress.totalGuesses is None or progress.currentGuessIndex is None:
                 continue
             numerator = progress.currentGuessIndex
-            denominator = len(progress.guesses)
+            denominator = progress.totalGuesses
             additionalPercentage = (float(numerator) / denominator) * factor
             percentageDone += additionalPercentage
             factor = factor / denominator
