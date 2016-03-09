@@ -1,3 +1,5 @@
+import Constraints
+
 class Square:
     "Superclass for initial and derived squares"
     def __init__(self):
@@ -12,8 +14,6 @@ class InitialSquare(Square):
         self.value = value
         self.__possibleValues = [0] * 9
         self.__possibleValues[value-1] = 1
-    def reset(self):
-        pass
     def countRemaining(self):
         return 1
     def hasSingleValue(self):
@@ -39,49 +39,52 @@ class InitialSquare(Square):
 class DerivedSquare(Square):
     "Derived square, initially empty"
     def __init__(self):
-        self.__possibleValues = [1] * 9
+        self.__possibleValues = set(range(1,10))
+        self.__singleValue = None
         self.dirty = False
-    def reset(self):
-        self.__init__()
     def countRemaining(self):
-        return self.__possibleValues.count(1)
+        return len(self.__possibleValues)
     def hasSingleValue(self):
         return self.countRemaining() is 1
     def getSingleValue(self):
         if not self.hasSingleValue():
             raise ValueError('do not call getSingleValue if no single value!')
-        index = self.__possibleValues.index(1)
-        return index + 1
+        if self.__singleValue is None:
+            self.__singleValue = self.__calculateSingleValue()
+        return self.__singleValue
+    def __calculateSingleValue(self):
+        return next(iter(self.__possibleValues))
     def isPossible(self, value):
-        index = value - 1
-        return self.__possibleValues[index] == 1
+        return value in self.__possibleValues
     def copyStateFrom(self, otherSquare):
         keep = otherSquare.valuesRemaining()
+        self.__possibleValues = set(keep)
         for possibleValue in range(1,10):
             if not possibleValue in keep:
                 self.eliminate(possibleValue)
     def valuesRemaining(self):
-        valueList = []
-        for value in range(1,10):
-            if self.isPossible(value):
-                valueList.append(value)
+        'returns a sorted tuple of possible values'
+        # return tuple(self.__possibleValues)
+        valueList = list(self.__possibleValues)
+        valueList.sort()
         return tuple(valueList)
     def select(self, arg):
-        eliminationList = list(range(1,10))
-        eliminationList.remove(arg)
-        self.eliminate(eliminationList)
+        if not self.isPossible(arg):
+            raise Constraints.SudokuConstraintViolationError('cannot select')
+        markAsDirty = not self.hasSingleValue()
+        self.__possibleValues = set((arg,))
+        if markAsDirty:
+            self.dirty = True
     def eliminate(self, arg):
-        "eliminate singly or in bulk; return true if values changed"
+        "eliminate singly or in bulk"
         if isinstance(arg, list):
             for item in arg:
                 self.eliminate(item)
-            return self.dirty
         else:
             if arg < 1 or arg > 9:
-                raise ValueError('Sudoku only works 1-9');
-            index = arg - 1
-            if self.__possibleValues[index] == 1:
-                self.__possibleValues[index] = 0
+                raise ValueError('Sudoku only works 1-9: ' + str(arg));
+            if arg in self.__possibleValues:
+                self.__possibleValues.remove(arg)
                 self.dirty = True
     def isDirty(self):
         return self.dirty

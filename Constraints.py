@@ -1,3 +1,5 @@
+import Profiler
+
 class SudokuConstraintViolationError(RuntimeError):
     pass
 
@@ -5,9 +7,8 @@ class Constraint:
     def __init__(self, puzzle):
         self.puzzle = puzzle
 
-class DoubleDoubleBox(Constraint):
-    def process(self, queueItem):
-        f = boxSquares8
+class DoubleDouble(Constraint):
+    def processInternal(self, queueItem, f):
         row = queueItem.row
         col = queueItem.column
         constraintSquare = self.puzzle.getSquare(row,col)
@@ -20,42 +21,26 @@ class DoubleDoubleBox(Constraint):
                     for j in range(0, len(othersquares)):
                         if i != j:
                             othersquares[j].eliminate(list(twoValuesRemaining))
-class DoubleDoubleColumn(Constraint):
+
+class DoubleDoubleBox(DoubleDouble):
     def process(self, queueItem):
-        f = columnSquares8
-        row = queueItem.row
-        col = queueItem.column
-        constraintSquare = self.puzzle.getSquare(row,col)
-        if constraintSquare.countRemaining() is 2:
-            twoValuesRemaining = constraintSquare.valuesRemaining()
-            othersquares = f(self.puzzle, queueItem)
-            for i in range(0, len(othersquares)):
-                if othersquares[i].valuesRemaining() == twoValuesRemaining:
-                    # bingo!
-                    for j in range(0, len(othersquares)):
-                        if i != j:
-                            othersquares[j].eliminate(list(twoValuesRemaining))
-class DoubleDoubleRow(Constraint):
+        self.processInternal(queueItem, boxSquares8)
+
+class DoubleDoubleColumn(DoubleDouble):
     def process(self, queueItem):
-        f = rowSquares8
-        row = queueItem.row
-        col = queueItem.column
-        constraintSquare = self.puzzle.getSquare(row,col)
-        if constraintSquare.countRemaining() is 2:
-            twoValuesRemaining = constraintSquare.valuesRemaining()
-            othersquares = f(self.puzzle, queueItem)
-            for i in range(0, len(othersquares)):
-                if othersquares[i].valuesRemaining() == twoValuesRemaining:
-                    # bingo!
-                    for j in range(0, len(othersquares)):
-                        if i != j:
-                            othersquares[j].eliminate(list(twoValuesRemaining))
+        self.processInternal(queueItem, columnSquares8)
+
+class DoubleDoubleRow(DoubleDouble):
+    def process(self, queueItem):
+        self.processInternal(queueItem, rowSquares8)
+
 class AllCannotBeEliminated(Constraint):
     def process(self, queueItem):
         row = queueItem.row
         col = queueItem.column
         if self.puzzle.getSquare(row,col).countRemaining() is 0:
             raise SudokuConstraintViolationError('contradiction')
+
 class NoRowDuplicates(Constraint):
     def process(self, queueItem):
         row = queueItem.row
@@ -80,8 +65,10 @@ class NoBoxDuplicates(Constraint):
             val = self.puzzle.getSquare(row,col).getSingleValue()
             for square in boxSquares8(self.puzzle, queueItem):
                 square.eliminate(val)
+
 class ProcessOfElimination(Constraint):
     def process(self, queueItem):
+        Profiler.startStopWatch('ProcessOfElimination')
         # deduction within my row, column, box
         for value in range(1,10):
             for f in (rowSquares9, columnSquares9, boxSquares9):
@@ -90,11 +77,13 @@ class ProcessOfElimination(Constraint):
                     if square.isPossible(value):
                         squaresWithValuePossible.append(square)
                 if len(squaresWithValuePossible) == 0:
+                    Profiler.stopStopWatch('ProcessOfElimination')
                     raise SudokuConstraintViolationError('contradiction')
                 elif len(squaresWithValuePossible) == 1:
                     squaresWithValuePossible[0].select(value)
                 else:
                     pass
+        Profiler.stopStopWatch('ProcessOfElimination')
 class PairProcessOfElimination(Constraint):
     """
     (The pair version)

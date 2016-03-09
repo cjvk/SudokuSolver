@@ -1,6 +1,11 @@
 import time
 import Constraints
 from Puzzle import SudokuPuzzle
+import Profiler
+
+# performance data, "worldshardest"
+# solving finished, elapsed time = 154.645702, 69215 total guesses
+
 
 class QueueItem:
     def __init__(self, row, column):
@@ -41,23 +46,29 @@ class Solver:
         if self.progressTuple[len(self.progressTuple)-1].depth > MAX_SEARCH_DEPTH:
             raise Constraints.SudokuConstraintViolationError('max depth reached')
         self.queue = []
-        self.constraintQueue = []
-        self.constraintQueue.append(Constraints.NoRowDuplicates(self.puzzle))
-        self.constraintQueue.append(Constraints.NoColumnDuplicates(self.puzzle))
-        self.constraintQueue.append(Constraints.NoBoxDuplicates(self.puzzle))
-        self.constraintQueue.append(Constraints.ProcessOfElimination(self.puzzle))
-        self.constraintQueue.append(Constraints.AllCannotBeEliminated(self.puzzle))
-        self.constraintQueue.append(Constraints.DoubleDoubleRow(self.puzzle))
-        self.constraintQueue.append(Constraints.DoubleDoubleColumn(self.puzzle))
-        self.constraintQueue.append(Constraints.DoubleDoubleBox(self.puzzle))
-        #self.constraintQueue.append(Constraints.PairProcessOfElimination(self.puzzle))
+        self.constraintQueue1 = []
+        self.constraintQueue1.append(Constraints.NoRowDuplicates(self.puzzle))
+        self.constraintQueue1.append(Constraints.NoColumnDuplicates(self.puzzle))
+        self.constraintQueue1.append(Constraints.NoBoxDuplicates(self.puzzle))
+        self.constraintQueue1.append(Constraints.ProcessOfElimination(self.puzzle))
+        self.constraintQueue1.append(Constraints.AllCannotBeEliminated(self.puzzle))
+        self.constraintQueue1.append(Constraints.DoubleDoubleRow(self.puzzle))
+        self.constraintQueue1.append(Constraints.DoubleDoubleColumn(self.puzzle))
+        self.constraintQueue1.append(Constraints.DoubleDoubleBox(self.puzzle))
+        #self.constraintQueue1.append(Constraints.PairProcessOfElimination(self.puzzle))
     def getDepth(self):
         return self.progressTuple[len(self.progressTuple)-1].depth
     def getProgress(self):
         return self.progressTuple[len(self.progressTuple)-1]
-    def process(self, queueItem):
-        for constraint in self.constraintQueue:
-            constraint.process(queueItem)
+    def process1(self, queueItem):
+        for constraint in self.constraintQueue1:
+            Profiler.startStopWatch('AllConstraints')
+            try:
+                constraint.process(queueItem)
+                Profiler.stopStopWatch('AllConstraints')
+            except Constraints.SudokuConstraintViolationError:
+                Profiler.stopStopWatch('AllConstraints')
+                raise
         pass
 
     def solve(self):
@@ -87,6 +98,13 @@ class Solver:
             debug('depth: %d, run: %d, queue length: %d' % (
                 self.getDepth(), run, len(self.queue)))
             if len(self.queue) == 0:
+                # hacky version of prioritized queues
+                # it caused performance to go down !
+                #self.runPOEConstraint()
+                #self.enqueueAllDirtyAndMarkClean()
+                #if len(self.queue) != 0:
+                #    continue
+
                 #
                 # Search/look-ahead goes here
                 #
@@ -99,6 +117,8 @@ class Solver:
                 # note there should be many correct guesses - one per node!
                 correctGuess = None
                 for index in range(0, len(guessList)):
+                    # preparation
+                    Profiler.startStopWatch('guessPreparation')
                     guess = guessList[index]
                     self.getProgress().currentGuessIndex = index
                     i = guess[0]
@@ -116,13 +136,15 @@ class Solver:
                     # apply the guess
                     puzzleClone.getSquare(i,j).select(value)
                     TOTAL_GUESSES_MADE = TOTAL_GUESSES_MADE + 1
-                    # and solve
                     debugPrintPuzzle(puzzleClone)
+                    Profiler.stopStopWatch('guessPreparation')
+                    # and solve
+                    Profiler.startStopWatch('lookahead solver creation')
                     newSolver = Solver(puzzleClone, self.progressTuple)
+                    Profiler.stopStopWatch('lookahead solver creation')
                     try:
                         possibleSolution = newSolver.solve()
                     except Constraints.SudokuConstraintViolationError:
-                        #debug('not right')
                         self.puzzle.getSquare(i,j).eliminate(value)
                         continue
                     print 'right'
@@ -148,7 +170,7 @@ class Solver:
             # run through queue completely
             while len(self.queue) > 0:
                 queueItem = self.queue.pop()
-                self.process(queueItem)
+                self.process1(queueItem)
             if self.doneYet():
                 print 'done!'
                 # arguably this should short circuit to the original caller
@@ -157,14 +179,24 @@ class Solver:
         time_end = time.time()
         args = (time_end-time_start, TOTAL_GUESSES_MADE)
         print 'solving finished, elapsed time = %f, %d total guesses' % args
+        Profiler.printAll()
         return self.puzzle
+    def runPOEConstraint(self):
+        # (1,1) (2,4) (3,7)
+        # (4,2) (5,5) (6,8)
+        # (7,3) (8,6) (9,9)
+        poe = Constraints.ProcessOfElimination(self.puzzle)
+        for xy in ((1,1),(2,4),(3,7),(4,2),(5,5),(6,8),(7,3),(8,6),(9,9)):
+            poe.process(QueueItem(xy[0],xy[1]))
     def enqueueAllDirtyAndMarkClean(self):
+        Profiler.startStopWatch('enqueueAllDirtyAndMarkClean()')
         for i in range(1,10):
             for j in range(1,10):
                 if self.puzzle.getSquare(i,j).isDirty():
                     queueItem = QueueItem(i,j)
                     self.enqueue(queueItem)
                     self.puzzle.getSquare(i,j).clean()
+        Profiler.stopStopWatch('enqueueAllDirtyAndMarkClean()')
     def guessList(self):
         "return a complete guess list, ordered by degree ascending"
         # a single guess is a tuple (i, j, value)

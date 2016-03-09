@@ -7,8 +7,8 @@ from Solver import Solver
 import SamplePuzzles
 
 PUZZLES = (
-    #SamplePuzzles.getById('worldshardest'),
-    SamplePuzzles.getById('sjm20160304'),
+    SamplePuzzles.getById('worldshardest'),
+    #SamplePuzzles.getById('sjm20160304'),
     #SamplePuzzles.getById('7sudokuvd1'),
     #SamplePuzzles.getById('ss20160302h'),
     #SamplePuzzles.getById('ss20160303h'),
