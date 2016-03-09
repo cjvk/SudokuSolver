@@ -59,9 +59,6 @@ class DerivedSquare(Square):
     def copyStateFrom(self, otherSquare):
         keep = otherSquare.valuesRemaining()
         self.__possibleValues = set(keep)
-        for possibleValue in range(1,10):
-            if not possibleValue in keep:
-                self.eliminate(possibleValue)
     def valuesRemaining(self):
         'returns a sorted tuple of possible values'
         # return tuple(self.__possibleValues)

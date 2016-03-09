@@ -1,11 +1,11 @@
 from Squares import Square
 from Squares import InitialSquare
 from Squares import DerivedSquare
+import Profiler
 
 class SudokuPuzzle:
     def __validateInitialStrings(self, initialStrings):
         if not isinstance(initialStrings, (list, tuple)):
-
             raise ValueError('Puzzle description must be list or tuple')
         if len(initialStrings) != 9:
             raise ValueError('Sudoku has 9 rows')
@@ -27,7 +27,9 @@ class SudokuPuzzle:
     def __init__(self, initialStrings):
         self.__validateInitialStrings(initialStrings)
         self.initialStrings = initialStrings
+        Profiler.startStopWatch('Puzzle > calculate rows from initial strings')
         self.rows = self.__calculateRowsFromInitialStrings(initialStrings)
+        Profiler.stopStopWatch('Puzzle > calculate rows from initial strings')
     def getSquare(self, row, column):
         rowIndex = row - 1
         columnIndex = column - 1

@@ -5,6 +5,8 @@
 from Puzzle import SudokuPuzzle
 from Solver import Solver
 import SamplePuzzles
+import time
+import Profiler
 
 PUZZLES = (
     SamplePuzzles.getById('worldshardest'),
@@ -23,7 +25,11 @@ for puzzle in PUZZLES:
     print puzzle.getName()
     p.printPuzzle()
     s = Solver(p)
+    time_start = time.time()
     s.solve()
+    time_end = time.time()
+    elapsed_time = time_end - time_start
+    Profiler.printAll(elapsed_time)
     print 'solved puzzle'
     print 'name:', puzzle.getName()
     p.printPuzzle()

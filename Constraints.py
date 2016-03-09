@@ -68,7 +68,7 @@ class NoBoxDuplicates(Constraint):
 
 class ProcessOfElimination(Constraint):
     def process(self, queueItem):
-        Profiler.startStopWatch('ProcessOfElimination')
+        Profiler.startStopWatch('constraints > ProcessOfElimination')
         # deduction within my row, column, box
         for value in range(1,10):
             for f in (rowSquares9, columnSquares9, boxSquares9):
@@ -77,13 +77,13 @@ class ProcessOfElimination(Constraint):
                     if square.isPossible(value):
                         squaresWithValuePossible.append(square)
                 if len(squaresWithValuePossible) == 0:
-                    Profiler.stopStopWatch('ProcessOfElimination')
+                    Profiler.stopStopWatch('constraints > ProcessOfElimination')
                     raise SudokuConstraintViolationError('contradiction')
                 elif len(squaresWithValuePossible) == 1:
                     squaresWithValuePossible[0].select(value)
                 else:
                     pass
-        Profiler.stopStopWatch('ProcessOfElimination')
+        Profiler.stopStopWatch('constraints > ProcessOfElimination')
 class PairProcessOfElimination(Constraint):
     """
     (The pair version)

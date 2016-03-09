@@ -5,7 +5,7 @@ import Profiler
 
 # performance data, "worldshardest"
 # solving finished, elapsed time = 154.645702, 69215 total guesses
-
+# solving finished, elapsed time = 114.222310, 69215 total guesses
 
 class QueueItem:
     def __init__(self, row, column):
@@ -22,15 +22,18 @@ class Progress:
         # depth is 0-indexed
         self.depth = depth
         self.guesses = None
+        self.totalGuesses = None
         # currentGuessIndex is 0-indexed
         self.currentGuessIndex = None
 
 class Solver:
     def __init__(self, puzzle, progressTuple=None):
+        Profiler.startStopWatch('Solver.__init__')
         self.puzzle = puzzle
         if progressTuple is None:
             self.progressTuple = (Progress(),)
         else:
+            Profiler.startStopWatch('Solver.__init__ > progress tuple')
             tempProgressList = []
             for pt in progressTuple:
                 ptcopy = Progress(pt.depth)
@@ -40,10 +43,13 @@ class Solver:
                     ptguesscopy = (ptguess[0], ptguess[1], ptguess[2])
                     tempGuessList.append(ptguesscopy)
                 ptcopy.guesses = tuple(tempGuessList)
+                ptcopy.totalGuesses = pt.totalGuesses
                 tempProgressList.append(ptcopy)
             tempProgressList.append(Progress(len(progressTuple)))
             self.progressTuple = tuple(tempProgressList)
+            Profiler.stopStopWatch('Solver.__init__ > progress tuple')
         if self.progressTuple[len(self.progressTuple)-1].depth > MAX_SEARCH_DEPTH:
+            Profiler.stopStopWatch('Solver.__init__')
             raise Constraints.SudokuConstraintViolationError('max depth reached')
         self.queue = []
         self.constraintQueue1 = []
@@ -56,18 +62,19 @@ class Solver:
         self.constraintQueue1.append(Constraints.DoubleDoubleColumn(self.puzzle))
         self.constraintQueue1.append(Constraints.DoubleDoubleBox(self.puzzle))
         #self.constraintQueue1.append(Constraints.PairProcessOfElimination(self.puzzle))
+        Profiler.stopStopWatch('Solver.__init__')
     def getDepth(self):
         return self.progressTuple[len(self.progressTuple)-1].depth
     def getProgress(self):
         return self.progressTuple[len(self.progressTuple)-1]
     def process1(self, queueItem):
         for constraint in self.constraintQueue1:
-            Profiler.startStopWatch('AllConstraints')
+            Profiler.startStopWatch('constraints')
             try:
                 constraint.process(queueItem)
-                Profiler.stopStopWatch('AllConstraints')
+                Profiler.stopStopWatch('constraints')
             except Constraints.SudokuConstraintViolationError:
-                Profiler.stopStopWatch('AllConstraints')
+                Profiler.stopStopWatch('constraints')
                 raise
         pass
 
@@ -114,9 +121,11 @@ class Solver:
                 # one guess is (i, j, value)
                 guessList = self.guessList()
                 self.getProgress().guesses = guessList
+                self.getProgress().totalGuesses = len(guessList)
                 # note there should be many correct guesses - one per node!
                 correctGuess = None
                 for index in range(0, len(guessList)):
+
                     # preparation
                     Profiler.startStopWatch('guessPreparation')
                     guess = guessList[index]
@@ -128,20 +137,23 @@ class Solver:
                     # clone the puzzle
                     puzzleClone = SudokuPuzzle(self.puzzle.initialStrings)
                     # copy the state of all the squares
+                    Profiler.startStopWatch('guessPreparation > copy state')
                     for ii in range(1,10):
                         for jj in range(1,10):
                             mysquare = self.puzzle.getSquare(ii,jj)
                             clonesquare = puzzleClone.getSquare(ii,jj)
                             clonesquare.copyStateFrom(mysquare)
+                    Profiler.stopStopWatch('guessPreparation > copy state')
                     # apply the guess
                     puzzleClone.getSquare(i,j).select(value)
                     TOTAL_GUESSES_MADE = TOTAL_GUESSES_MADE + 1
                     debugPrintPuzzle(puzzleClone)
-                    Profiler.stopStopWatch('guessPreparation')
+
                     # and solve
-                    Profiler.startStopWatch('lookahead solver creation')
+                    Profiler.startStopWatch('guessPreparation > lookahead solver creation')
                     newSolver = Solver(puzzleClone, self.progressTuple)
-                    Profiler.stopStopWatch('lookahead solver creation')
+                    Profiler.stopStopWatch('guessPreparation > lookahead solver creation')
+                    Profiler.stopStopWatch('guessPreparation')
                     try:
                         possibleSolution = newSolver.solve()
                     except Constraints.SudokuConstraintViolationError:
@@ -179,7 +191,7 @@ class Solver:
         time_end = time.time()
         args = (time_end-time_start, TOTAL_GUESSES_MADE)
         print 'solving finished, elapsed time = %f, %d total guesses' % args
-        Profiler.printAll()
+        #Profiler.printAll()
         return self.puzzle
     def runPOEConstraint(self):
         # (1,1) (2,4) (3,7)
