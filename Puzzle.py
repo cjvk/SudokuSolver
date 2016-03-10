@@ -36,7 +36,7 @@ class SudokuPuzzle:
             for j in range(1,10):
                 fromSquare = fromPuzzle.getSquare(i,j)
                 if isinstance(fromSquare,DerivedSquare):
-                    newSquare = DerivedSquare(fromSquare)
+                    newSquare = DerivedSquare(fromSquare.getBitmap())
                     row.append(newSquare)
                 else:
                     # InitialSquare

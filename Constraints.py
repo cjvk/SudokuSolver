@@ -1,4 +1,5 @@
 import Profiler
+import Squares
 
 class SudokuConstraintViolationError(RuntimeError):
     pass
@@ -13,14 +14,17 @@ class DoubleDouble(Constraint):
         col = queueItem.column
         constraintSquare = self.puzzle.getSquare(row,col)
         if constraintSquare.countRemaining() is 2:
-            twoValuesRemaining = constraintSquare.valuesRemaining()
+            constraintSquareState = constraintSquare.getBitmap()
+            #twoValuesRemaining = constraintSquare.valuesRemaining()
             othersquares = f(self.puzzle, queueItem)
             for i in range(0, len(othersquares)):
-                if othersquares[i].valuesRemaining() == twoValuesRemaining:
+                #if othersquares[i].valuesRemaining() == twoValuesRemaining:
+                if othersquares[i].getBitmap() == constraintSquareState:
                     # bingo!
                     for j in range(0, len(othersquares)):
                         if i != j:
-                            othersquares[j].eliminate(list(twoValuesRemaining))
+                            othersquares[j].bitmapElimination(constraintSquareState)
+                            #othersquares[j].eliminate(list(twoValuesRemaining))
 
 class DoubleDoubleBox(DoubleDouble):
     def process(self, queueItem):
@@ -70,19 +74,45 @@ class ProcessOfElimination(Constraint):
     def process(self, queueItem):
         Profiler.startStopWatch('constraints > ProcessOfElimination')
         # deduction within my row, column, box
-        for value in range(1,10):
-            for f in (rowSquares9, columnSquares9, boxSquares9):
-                squaresWithValuePossible = []
-                for square in f(self.puzzle, queueItem):
-                    if square.isPossible(value):
-                        squaresWithValuePossible.append(square)
-                if len(squaresWithValuePossible) == 0:
-                    Profiler.stopStopWatch('constraints > ProcessOfElimination')
-                    raise SudokuConstraintViolationError('contradiction')
-                elif len(squaresWithValuePossible) == 1:
-                    squaresWithValuePossible[0].select(value)
-                else:
-                    pass
+        for f in (rowSquares9, columnSquares9, boxSquares9):
+            bitmaps = []
+            squares = f(self.puzzle, queueItem)
+            for square in squares:
+                bitmaps.append(square.getBitmap())
+            # e.g. in 4-sudoku, you have (23) (24) (1234) (34), you would select 1
+            # given a number of bitmaps, how to count if certain position has
+            # exactly 1 member set? Using bit operations
+            # translate above to (0110) (0101) (1111) (0011)
+            setEver = 0
+            setOdd = 0
+            setTwoPlusTimes = 0
+            for bitmap in bitmaps:
+                setEver = setEver | bitmap
+                setOdd = setOdd ^ bitmap
+                # first occurrence of 2 is setEver = 1, setOdd = 0
+                setTwoPlusTimes = setTwoPlusTimes | (setEver & (~setOdd & 511))
+            if setEver != 511:
+                Profiler.stopStopWatch('constraints > ProcessOfElimination')
+                raise SudokuConstraintViolationError('contradiction')
+            # to get "Sudoku not", do bitwise not, then and with 511
+            setExactlyOnce = setOdd & (511 & ~setTwoPlusTimes)
+            # setExactlyOnce is values with exactly one square of legality
+            for possibleValue in range(1,10):
+                if Squares.BITMAP_VALUES[possibleValue] & setExactlyOnce != 0:
+                    # find the square with possibleValue legal
+                    found = False
+                    for square in squares:
+                        if square.isPossible(possibleValue):
+                            found = True
+                            square.select(possibleValue)
+                            break
+                    if not found:
+                        Profiler.stopStopWatch('constraints > ProcessOfElimination')
+                        # may not be found in case where a square was
+                        # selected in above for loop, thereby eliminating
+                        # some other potential value
+                        # (resulting in a contradiction)
+                        raise SudokuConstraintViolationError('should be found')
         Profiler.stopStopWatch('constraints > ProcessOfElimination')
 class PairProcessOfElimination(Constraint):
     """

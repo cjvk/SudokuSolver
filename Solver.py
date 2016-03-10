@@ -10,6 +10,7 @@ import Profiler
 # solving finished, elapsed time = 85.087049, 69215 total guesses
 # solving finished, elapsed time = 81.543957, 69215 total guesses
 # solving finished, elapsed time = 71.122067, 69215 total guesses
+# solving finished, elapsed time = 51.252897, 69215 total guesses
 
 class QueueItem:
     def __init__(self, row, column):
