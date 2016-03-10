@@ -102,6 +102,7 @@ class DerivedSquare(Square):
         if previous_bitmap != self.__bitmap:
             self.dirty = True
     def bitmapElimination(self, bitmap):
+        'if bitmap=000 011 000, eliminate values 4 and 5'
         previous_bitmap = self.__bitmap
         self.__bitmap = self.__bitmap & (BITMAP_VALUES[0] ^ bitmap)
         if previous_bitmap != self.__bitmap:

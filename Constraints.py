@@ -15,17 +15,13 @@ class DoubleDouble(Constraint):
         constraintSquare = self.puzzle.getSquare(row,col)
         if constraintSquare.countRemaining() is 2:
             constraintSquareState = constraintSquare.getBitmap()
-            #twoValuesRemaining = constraintSquare.valuesRemaining()
             othersquares = f(self.puzzle, queueItem)
             for i in range(0, len(othersquares)):
-                #if othersquares[i].valuesRemaining() == twoValuesRemaining:
                 if othersquares[i].getBitmap() == constraintSquareState:
                     # bingo!
                     for j in range(0, len(othersquares)):
                         if i != j:
                             othersquares[j].bitmapElimination(constraintSquareState)
-                            #othersquares[j].eliminate(list(twoValuesRemaining))
-
 class DoubleDoubleBox(DoubleDouble):
     def process(self, queueItem):
         self.processInternal(queueItem, boxSquares8)
@@ -44,31 +40,22 @@ class AllCannotBeEliminated(Constraint):
         col = queueItem.column
         if self.puzzle.getSquare(row,col).countRemaining() is 0:
             raise SudokuConstraintViolationError('contradiction')
-
-class NoRowDuplicates(Constraint):
-    def process(self, queueItem):
+class NoDuplicates(Constraint):
+    def processInternal(self, queueItem, f):
         row = queueItem.row
         col = queueItem.column
         if self.puzzle.getSquare(row,col).hasSingleValue():
-            val = self.puzzle.getSquare(row,col).getSingleValue()
-            for square in rowSquares8(self.puzzle, queueItem):
-                square.eliminate(val)
-class NoColumnDuplicates(Constraint):
+            for square in f(self.puzzle, queueItem):
+                square.bitmapElimination(self.puzzle.getSquare(row,col).getBitmap())
+class NoRowDuplicates(NoDuplicates):
     def process(self, queueItem):
-        row = queueItem.row
-        col = queueItem.column
-        if self.puzzle.getSquare(row,col).hasSingleValue():
-            val = self.puzzle.getSquare(row,col).getSingleValue()
-            for square in columnSquares8(self.puzzle, queueItem):
-                square.eliminate(val)
-class NoBoxDuplicates(Constraint):
+        self.processInternal(queueItem, rowSquares8)
+class NoColumnDuplicates(NoDuplicates):
     def process(self, queueItem):
-        row = queueItem.row
-        col = queueItem.column
-        if self.puzzle.getSquare(row,col).hasSingleValue():
-            val = self.puzzle.getSquare(row,col).getSingleValue()
-            for square in boxSquares8(self.puzzle, queueItem):
-                square.eliminate(val)
+        self.processInternal(queueItem, columnSquares8)
+class NoBoxDuplicates(NoDuplicates):
+    def process(self, queueItem):
+        self.processInternal(queueItem, boxSquares8)
 
 class ProcessOfElimination(Constraint):
     def process(self, queueItem):
