@@ -24,12 +24,24 @@ class SudokuPuzzle:
                     row.append(InitialSquare(int(c)))
             rows.append(row)
         return rows
-    def __init__(self, initialStrings):
-        self.__validateInitialStrings(initialStrings)
+    def __init__(self, initialStrings, byHand = False):
         self.initialStrings = initialStrings
-        Profiler.startStopWatch('Puzzle > calculate rows from initial strings')
-        self.rows = self.__calculateRowsFromInitialStrings(initialStrings)
-        Profiler.stopStopWatch('Puzzle > calculate rows from initial strings')
+        if not byHand:
+            self.__validateInitialStrings(initialStrings)
+            self.rows = self.__calculateRowsFromInitialStrings(initialStrings)
+    def cloneFrom(self, fromPuzzle):
+        self.rows = []
+        for i in range(1,10):
+            row = []
+            for j in range(1,10):
+                fromSquare = fromPuzzle.getSquare(i,j)
+                if isinstance(fromSquare,DerivedSquare):
+                    newSquare = DerivedSquare(fromSquare)
+                    row.append(newSquare)
+                else:
+                    # InitialSquare
+                    row.append(InitialSquare(fromSquare.getSingleValue()))
+            self.rows.append(row)
     def getSquare(self, row, column):
         rowIndex = row - 1
         columnIndex = column - 1

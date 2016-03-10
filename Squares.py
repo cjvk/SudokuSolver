@@ -1,4 +1,5 @@
 import Constraints
+import copy
 
 class Square:
     "Superclass for initial and derived squares"
@@ -12,8 +13,8 @@ class InitialSquare(Square):
         if value < 1 or value > 9:
             raise ValueError('Sudoku only works 1-9');
         self.value = value
-        self.__possibleValues = [0] * 9
-        self.__possibleValues[value-1] = 1
+        #self.__possibleValues = [0] * 9
+        #self.__possibleValues[value-1] = 1
     def countRemaining(self):
         return 1
     def hasSingleValue(self):
@@ -38,8 +39,11 @@ class InitialSquare(Square):
 
 class DerivedSquare(Square):
     "Derived square, initially empty"
-    def __init__(self):
-        self.__possibleValues = set(range(1,10))
+    def __init__(self, sourceSquare = None):
+        if sourceSquare is None:
+            self.__possibleValues = set(range(1,10))
+        else:
+            self.copyStateFrom(sourceSquare)
         self.__singleValue = None
         self.dirty = False
     def countRemaining(self):
@@ -57,8 +61,10 @@ class DerivedSquare(Square):
     def isPossible(self, value):
         return value in self.__possibleValues
     def copyStateFrom(self, otherSquare):
-        keep = otherSquare.valuesRemaining()
+        keep = otherSquare.valuesRemainingUnsorted()
         self.__possibleValues = set(keep)
+    def valuesRemainingUnsorted(self):
+        return tuple(self.__possibleValues)
     def valuesRemaining(self):
         'returns a sorted tuple of possible values'
         # return tuple(self.__possibleValues)

@@ -7,6 +7,9 @@ import Profiler
 # solving finished, elapsed time = 154.645702, 69215 total guesses
 # solving finished, elapsed time = 114.222310, 69215 total guesses
 # solving finished, elapsed time = 87.261561, 69215 total guesses
+# solving finished, elapsed time = 85.087049, 69215 total guesses
+# solving finished, elapsed time = 81.543957, 69215 total guesses
+# solving finished, elapsed time = 71.122067, 69215 total guesses
 
 class QueueItem:
     def __init__(self, row, column):
@@ -125,23 +128,20 @@ class Solver:
                     value = guess[2]
                     debug('guess: (i,j,value)=(%d,%d,%d)' % (i,j,value))
                     # clone the puzzle
-                    puzzleClone = SudokuPuzzle(self.puzzle.initialStrings)
+                    puzzleClone = SudokuPuzzle(self.puzzle.initialStrings, True)
                     # copy the state of all the squares
                     Profiler.startStopWatch('guessPreparation > copy state')
-                    for ii in range(1,10):
-                        for jj in range(1,10):
-                            mysquare = self.puzzle.getSquare(ii,jj)
-                            clonesquare = puzzleClone.getSquare(ii,jj)
-                            clonesquare.copyStateFrom(mysquare)
+                    puzzleClone.cloneFrom(self.puzzle)
                     Profiler.stopStopWatch('guessPreparation > copy state')
                     # apply the guess
                     puzzleClone.getSquare(i,j).select(value)
                     TOTAL_GUESSES_MADE = TOTAL_GUESSES_MADE + 1
                     debugPrintPuzzle(puzzleClone)
-
-                    # and solve
+                    # create the new solver
                     newSolver = Solver(puzzleClone, self.progressTuple)
                     Profiler.stopStopWatch('guessPreparation')
+
+                    # and solve
                     try:
                         possibleSolution = newSolver.solve()
                     except Constraints.SudokuConstraintViolationError:
