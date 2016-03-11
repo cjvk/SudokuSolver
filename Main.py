@@ -9,8 +9,8 @@ import time
 import Profiler
 
 PUZZLES = (
-    SamplePuzzles.getById('sjm20160310'),
-    #SamplePuzzles.getById('worldshardest'),
+    #SamplePuzzles.getById('sjm20160310'),
+    SamplePuzzles.getById('worldshardest'),
     #SamplePuzzles.getById('sjm20160304'),
     #SamplePuzzles.getById('7sudokuvd1'),
     #SamplePuzzles.getById('ss20160302h'),

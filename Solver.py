@@ -2,6 +2,7 @@ import time
 import Constraints
 from Puzzle import SudokuPuzzle
 import Profiler
+import Debug
 
 # performance data, "worldshardest"
 # solving finished, elapsed time = 154.645702, 69215 total guesses
@@ -85,7 +86,8 @@ class Solver:
            d. go to 3)
         """
         global TOTAL_GUESSES_MADE
-        debug('solving... %s' % str(self.searchStatusString()))
+        if TOTAL_GUESSES_MADE % 1000 == 0:
+            Debug.debug('solving... %s' % str(self.searchStatusString()), 1)
         time_start = time.time()
         # enqueue all InitialSquare objects
         for i in range(1,10):
@@ -95,10 +97,10 @@ class Solver:
                     self.enqueue(queueItem)
         # clean all squares
         self.cleanAll()
-        debug('queue length:' + str(len(self.queue)))
+        Debug.debug('queue length:' + str(len(self.queue)))
         MAX_RUNS = 30
         for run in range(0, MAX_RUNS):
-            debug('depth: %d, run: %d, queue length: %d' % (
+            Debug.debug('depth: %d, run: %d, queue length: %d' % (
                 self.getDepth(), run, len(self.queue)))
             if len(self.queue) == 0:
                 # hacky version of prioritized queues
@@ -111,8 +113,8 @@ class Solver:
                 #
                 # Search/look-ahead goes here
                 #
-                debug('empty queue, depth: ' + str(self.getDepth()) + ', run: ' + str(run))
-                debugPrintPuzzle(self.puzzle)
+                Debug.debug('empty queue, depth: %d, run: %d' % (self.getDepth(), run))
+                Debug.debugPrintPuzzle(self.puzzle)
                 # a complete guess list, ordered by degree ascending
                 # one guess is (i, j, value)
                 guessList = self.guessList()
@@ -128,7 +130,7 @@ class Solver:
                     i = guess[0]
                     j = guess[1]
                     value = guess[2]
-                    debug('guess: (i,j,value)=(%d,%d,%d)' % (i,j,value))
+                    Debug.debug('guess: (i,j,value)=(%d,%d,%d)' % (i,j,value))
                     # clone the puzzle
                     puzzleClone = SudokuPuzzle(self.puzzle.initialStrings, True)
                     # copy the state of all the squares
@@ -138,7 +140,7 @@ class Solver:
                     # apply the guess
                     puzzleClone.getSquare(i,j).select(value)
                     TOTAL_GUESSES_MADE = TOTAL_GUESSES_MADE + 1
-                    debugPrintPuzzle(puzzleClone)
+                    Debug.debugPrintPuzzle(puzzleClone)
                     # create the new solver
                     newSolver = Solver(puzzleClone, self.progressTuple)
                     Profiler.stopStopWatch('guessPreparation')
@@ -149,7 +151,7 @@ class Solver:
                     except Constraints.SudokuConstraintViolationError:
                         self.puzzle.getSquare(i,j).eliminate(value)
                         continue
-                    print 'right'
+                    Debug.debug('right')
                     # possibleSolution seems to have the correct solution
                     # just returning it isn't enough maybe
                     # I need to copy the solution!
@@ -164,9 +166,9 @@ class Solver:
                 i = correctGuess[0]
                 j = correctGuess[1]
                 value = correctGuess[2]
-                debug('applying (i,j,value) = (%d,%d,%d)' % (i,j,value))
+                Debug.debug('applying (i,j,value) = (%d,%d,%d)' % (i,j,value))
                 self.puzzle.getSquare(i,j).select(value)
-                debug('enqueue all dirty, mark clean, continuing')
+                Debug.debug('enqueue all dirty, mark clean, continuing')
                 self.enqueueAllDirtyAndMarkClean()
                 continue
             # run through queue completely
@@ -174,13 +176,17 @@ class Solver:
                 queueItem = self.queue.pop()
                 self.process1(queueItem)
             if self.doneYet():
-                print 'done!'
+                Debug.debug('done!')
                 # arguably this should short circuit to the original caller
                 break
             self.enqueueAllDirtyAndMarkClean()
         time_end = time.time()
         args = (time_end-time_start, TOTAL_GUESSES_MADE)
-        print 'solving finished, elapsed time = %f, %d total guesses' % args
+        debug_level = 3
+        if self.getDepth() == 0:
+            debug_level = 1
+        debugstr = 'solving finished, elapsed time = %f, %d total guesses' % args
+        Debug.debug(debugstr, debug_level)
         return self.puzzle
     def runPOEConstraint(self):
         # (1,1) (2,4) (3,7)
@@ -302,11 +308,3 @@ class Solver:
         return True
     pass
 
-PRINT_EVERY_N_GUESSES = 1000
-def debug(str):
-    if (TOTAL_GUESSES_MADE % PRINT_EVERY_N_GUESSES) == 0:
-        print str
-PRINT_PUZZLE_EVERY_N_GUESSES = 10000
-def debugPrintPuzzle(puzzle):
-    if (TOTAL_GUESSES_MADE % PRINT_PUZZLE_EVERY_N_GUESSES) == 0:
-        puzzle.printPuzzle()
