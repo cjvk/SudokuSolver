@@ -34,6 +34,21 @@ class PuzzleDescription:
 
 SAMPLE_PUZZLES = (
     PuzzleDescription(
+        id='sjm20160310',
+        name='Mercury News, 3/10/2016, difficulty: 3/4',
+        puzzle=(
+            '   164   ',
+            '43  7  1 ',
+            '1    9   ',
+            ' 2     57',
+            '  54 73  ',
+            '31     8 ',
+            '   6    2',
+            ' 8     45',
+            '   945   ',
+        )
+    ),
+    PuzzleDescription(
         id='worldshardest',
         name='http://www.telegraph.co.uk/news/science/science-news/9359579/Worlds-hardest-sudoku-can-you-crack-it.html',
         puzzle=(
