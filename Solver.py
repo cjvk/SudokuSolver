@@ -13,6 +13,7 @@ import Debug
 # solving finished, elapsed time = 71.122067, 69215 total guesses
 # solving finished, elapsed time = 51.252897, 69215 total guesses
 # solving finished, elapsed time = 49.443129, 69215 total guesses
+# solving finished, elapsed time = 42.226120, 45637 total guesses
 
 class QueueItem:
     def __init__(self, row, column):
@@ -206,7 +207,15 @@ class Solver:
         "return a complete guess list, ordered by degree ascending"
         # a single guess is a tuple (i, j, value)
         guessList = []
-        for degree in range(2,10): # 2-9
+        #for degree in range(2,10): # 2-9 # 49.443129, 69215 total guesses
+        #for degree in (3,2,4,5,6,7,8,9): # 42.226120, 45637 total guesses
+        #for degree in (4,3,2,5,6,7,8,9): # 6.698509, 6563 total guesses
+        #for degree in (9,8,7,6,5,4,3,2): # 63.295797, 64595 total guesses
+        #for degree in (5,4,3,2,6,7,8,9): # 3.029859, 2675 total guesses
+        #for degree in (6,5,4,3,2,7,8,9): # 12.530247, 13343 total guesses
+        #for degree in (7,6,5,4,3,2,8,9): # 62.418650, 64595 total guesses
+        #for degree in (5,4,2,3,6,7,8,9): # 3.040456, 2675 total guesses
+        for degree in (5,2,3,4,6,7,8,9): # 2.864556, 2675 total guesses
             for i in range(1,10):
                 for j in range(1,10):
                     square = self.puzzle.getSquare(i,j)
