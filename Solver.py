@@ -3,6 +3,8 @@ import Constraints
 from Puzzle import SudokuPuzzle
 import Profiler
 import Debug
+import random
+import GuessOrdering
 
 # performance data, "worldshardest"
 # solving finished, elapsed time = 154.645702, 69215 total guesses
@@ -34,8 +36,9 @@ class Progress:
         self.currentGuessIndex = None
 
 class Solver:
-    def __init__(self, puzzle, progressTuple=None):
+    def __init__(self, puzzle, guessOrdering, progressTuple=None):
         self.puzzle = puzzle
+        self.guessOrdering = guessOrdering
         if progressTuple is None:
             self.progressTuple = (Progress(),)
         else:
@@ -43,7 +46,7 @@ class Solver:
             for pt in progressTuple:
                 ptcopy = Progress(pt.depth)
                 ptcopy.currentGuessIndex = pt.currentGuessIndex
-                tempGuessList = []
+                #tempGuessList = []
                 ptcopy.totalGuesses = pt.totalGuesses
                 tempProgressList.append(ptcopy)
             tempProgressList.append(Progress(len(progressTuple)))
@@ -118,7 +121,9 @@ class Solver:
                 Debug.debugPrintPuzzle(self.puzzle)
                 # a complete guess list, ordered by degree ascending
                 # one guess is (i, j, value)
-                guessList = self.guessList()
+                #guessList = self.guessList()
+                ordering = self.guessOrdering
+                guessList = ordering.guessList(self)
                 self.getProgress().totalGuesses = len(guessList)
                 # note there should be many correct guesses - one per node!
                 correctGuess = None
@@ -143,7 +148,7 @@ class Solver:
                     TOTAL_GUESSES_MADE = TOTAL_GUESSES_MADE + 1
                     Debug.debugPrintPuzzle(puzzleClone)
                     # create the new solver
-                    newSolver = Solver(puzzleClone, self.progressTuple)
+                    newSolver = Solver(puzzleClone, self.guessOrdering, self.progressTuple)
                     Profiler.stopStopWatch('guessPreparation')
 
                     # and solve
@@ -203,25 +208,31 @@ class Solver:
                     queueItem = QueueItem(i,j)
                     self.enqueue(queueItem)
                     self.puzzle.getSquare(i,j).clean()
-    def guessList(self):
+    def guessList_deprecated(self):
         "return a complete guess list, ordered by degree ascending"
         # a single guess is a tuple (i, j, value)
         guessList = []
         #for degree in range(2,10): # 2-9 # 49.443129, 69215 total guesses
         #for degree in (3,2,4,5,6,7,8,9): # 42.226120, 45637 total guesses
-        #for degree in (4,3,2,5,6,7,8,9): # 6.698509, 6563 total guesses
+        for degree in (4,3,2,5,6,7,8,9): # 6.698509, 6563 total guesses
         #for degree in (9,8,7,6,5,4,3,2): # 63.295797, 64595 total guesses
         #for degree in (5,4,3,2,6,7,8,9): # 3.029859, 2675 total guesses
         #for degree in (6,5,4,3,2,7,8,9): # 12.530247, 13343 total guesses
         #for degree in (7,6,5,4,3,2,8,9): # 62.418650, 64595 total guesses
         #for degree in (5,4,2,3,6,7,8,9): # 3.040456, 2675 total guesses
-        for degree in (5,2,3,4,6,7,8,9): # 2.864556, 2675 total guesses
+        #for degree in (5,2,3,4,6,7,8,9): # 2.864556, 2675 total guesses
+            singleDegreeGuessList = []
             for i in range(1,10):
                 for j in range(1,10):
                     square = self.puzzle.getSquare(i,j)
                     if square.countRemaining() == degree:
                         for value in square.valuesRemaining():
-                            guessList.append((i,j,value))
+                            #guessList.append((i,j,value))
+                            singleDegreeGuessList.append((i,j,value))
+            if Debug.RANDOMIZE_GUESSLIST:
+                random.shuffle(singleDegreeGuessList)
+            for guess in singleDegreeGuessList:
+                guessList.append(guess)
         return guessList
     def cleanAll(self):
         for i in range(1,10):
