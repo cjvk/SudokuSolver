@@ -120,6 +120,13 @@ class PairProcessOfElimination(Constraint):
     This constraint would work in tandem with the DoubleDouble
     family of constraints, because the elimination marks as
     dirty, and the DoubleDouble family would reduce further.
+
+    3/15/2016: Given the strategy of guessing first in these
+               "pair nodes" is worse than simply guessing in
+               the 2-9 range, and given that this constraint
+               is MUCH more computationally intensive than
+               doing the guess and propagating, I have chosen
+               to not include this constraint in the simulation.
     """
     def process(self, queueItem):
         for value1 in range(1,10):

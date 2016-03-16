@@ -29,9 +29,11 @@ def profileStrategy():
     Debug.DEBUG = 0
 
     strategies = (
-        GuessOrdering.SimplePlusPairPriority(),
-        GuessOrdering.SimpleGuessOrderingByTuple(range(2,10)),
-        GuessOrdering.SimpleGuessOrderingByTuple((3,2,4,5,6,7,8,9)),
+        GuessOrdering.DegreeRowColBoxDegree(True),
+        #GuessOrdering.DegreeRowColBoxDegree(),
+        #GuessOrdering.SimplePlusPairPriority(),
+        #GuessOrdering.SimpleGuessOrderingByTuple(range(2,10)),
+        #GuessOrdering.SimpleGuessOrderingByTuple((3,2,4,5,6,7,8,9)),
         #GuessOrdering.SimpleGuessOrderingByTuple((4,3,2,5,6,7,8,9)),
         #GuessOrdering.SimpleGuessOrderingByTuple((9,8,7,6,5,4,3,2)),
         #GuessOrdering.SimpleGuessOrderingByTuple((5,4,3,2,6,7,8,9)),
@@ -42,10 +44,10 @@ def profileStrategy():
     )
 
     uberresults = []
+    number_of_trials = 90
 
     for i in range(0, len(strategies)):
         strategy = strategies[i]
-        number_of_trials = 100
         trial_results = []
         sum = [0, 0]
 
@@ -76,13 +78,13 @@ def profileStrategy():
         sys.stdout.write(' ' + whichone + '     ' + str(ubertuple) + '\n')
         sys.stdout.flush()
     
-    print 'name, nps, avg_time, avg_guesses'
+    print 'name, number_of_trials, nps, avg_time, avg_guesses'
     for uberresult in uberresults:
         name = str(uberresult[0])
         nps = uberresult[1]
         avg_time = uberresult[2]
         avg_guesses = uberresult[3]
-        print name, nps, avg_time, avg_guesses
+        print name, number_of_trials, nps, avg_time, avg_guesses
 
 def runOnePuzzle():
     for puzzle in PUZZLES:
