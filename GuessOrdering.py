@@ -127,7 +127,49 @@ class DegreeRowColBoxDegree:
                         guessListForThisLevel.append((i,j,value))
                 guessListList.append(guessListForThisLevel)
 
+#         print 'guess ordering debugging: begin'
+#         solver.puzzle.printPuzzle()
+#         print '--------------- 1'
+#         for i in range(1,10):
+#             for j in range(1,10):
+#                 sq = solver.puzzle.getSquare(i,j)
+#                 t = (i,j,str(sq.valuesRemaining()))
+#                 print 'i/j/valuesremaining = %d/%d/%s' % t
+#         print '--------------- 2'
+#         print guessListList
+#         print 'guess ordering debugging: end'
+#         exit()
+
         return self.__combine_guess_lists(guessListList)
+
+class DegreeRowColBoxDegree2:
+    def name(self):
+        return 'DegreeRowColBoxDegree2'
+    def __comparator(self, item1, item2, solver):
+        pass
+    def all_guesses(self, solver):
+        guess_list = []
+        for i in range(1,10):
+            for j in range(1,10):
+                square = solver.puzzle.getSquare(i,j)
+                if not square.hasSingleValue():
+                    for value in square.valuesRemaining():
+                        guess_list.append((i,j,value))
+        return guess_list
+    def __comparator_context(self, solver):
+        context_dict = {}
+        for i in range(1,10):
+            for j in range(1,10):
+                square = solver.puzzle.getSquare(i,j)
+                degree = square.countRemaining()
+                
+
+    def guessList(self, solver):
+        # sort 1: node degree
+        # sort 2: min(row/col/box)
+        # sort 3: random AND totally ordered
+        def comparator(item1, item2):
+            return self.__comparator(item1, item2, solver)
 
 class SimpleGuessOrderingByTuple:
     def __init__(self, orderingTuple):

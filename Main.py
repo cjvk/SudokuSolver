@@ -44,7 +44,7 @@ def profileStrategy():
     )
 
     uberresults = []
-    number_of_trials = 90
+    number_of_trials = 2
 
     for i in range(0, len(strategies)):
         strategy = strategies[i]
