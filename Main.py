@@ -29,7 +29,8 @@ def profileStrategy():
     Debug.DEBUG = 0
 
     strategies = (
-        GuessOrdering.DegreeRowColBoxDegree(True),
+        GuessOrdering.DegreeRowColBoxDegree2(),
+        #GuessOrdering.DegreeRowColBoxDegree(True),
         #GuessOrdering.DegreeRowColBoxDegree(),
         #GuessOrdering.SimplePlusPairPriority(),
         #GuessOrdering.SimpleGuessOrderingByTuple(range(2,10)),
