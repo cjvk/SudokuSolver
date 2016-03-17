@@ -10,6 +10,7 @@ import Profiler
 import GuessOrdering
 import Debug
 import sys
+import hashlib
 
 PUZZLES = (
     #SamplePuzzles.getById('sjm20160310'),
@@ -45,7 +46,7 @@ def profileStrategy():
     )
 
     uberresults = []
-    number_of_trials = 2
+    number_of_trials = 10
 
     for i in range(0, len(strategies)):
         strategy = strategies[i]

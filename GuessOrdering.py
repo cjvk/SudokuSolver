@@ -1,5 +1,6 @@
 import Debug
 import random
+import hashlib
 
 class SimplePlusPairPriority:
     def name(self):
@@ -160,9 +161,12 @@ class DegreeRowColBoxDegree2:
         return guess_list
     def __comparator_context(self, solver):
         context_dict = {
-            'row_degrees' : [0] * 9,
-            'col_degrees' : [0] * 9,
-            'box_degrees' : [0] * 9,
+            'row_degrees_total' : [0] * 9,
+            'col_degrees_total' : [0] * 9,
+            'box_degrees_total' : [0] * 9,
+            'row_degrees_count' : [0] * 9,
+            'col_degrees_count' : [0] * 9,
+            'box_degrees_count' : [0] * 9,
         }
         for i in range(1,10):
             for j in range(1,10):
@@ -170,11 +174,15 @@ class DegreeRowColBoxDegree2:
                 degree = square.countRemaining()
                 #context_dict[(i,j)] = (square, degree)
                 context_dict[(i,j)] = degree
-                # and update the totals
-                context_dict['row_degrees'][i-1]+=degree
-                context_dict['col_degrees'][j-1]+=degree
-                box_number = self.__ij_to_box(i,j)
-                context_dict['box_degrees'][box_number]+=degree
+                # update the totals for degree > 1
+                if degree != 1:
+                    context_dict['row_degrees_total'][i-1]+=degree
+                    context_dict['row_degrees_count'][i-1]+=1
+                    context_dict['col_degrees_total'][j-1]+=degree
+                    context_dict['col_degrees_count'][j-1]+=1
+                    box_number = self.__ij_to_box(i,j)
+                    context_dict['box_degrees_total'][box_number]+=degree
+                    context_dict['box_degrees_count'][box_number]+=1
         return context_dict
     def __comparator(self, item1, item2, context, bitmask):
         # '<' or '<=' are examples
@@ -195,22 +203,37 @@ class DegreeRowColBoxDegree2:
         # sort 2: min(row/col/box)
         box1 = self.__ij_to_box(i1,j1)
         box2 = self.__ij_to_box(i2,j2)
-        min1 = min(
-            context['row_degrees'][i1-1],
-            context['col_degrees'][j1-1],
-            context['box_degrees'][box1]
-        )
-        min2 = min(
-            context['row_degrees'][i2-1],
-            context['col_degrees'][j2-1],
-            context['box_degrees'][box2]
-        )
-        if min1 != min2:
-            return min1 - min2
+        # value1 = min(
+        #     float(context['row_degrees_total'][i1-1])/context['row_degrees_count'][i1-1],
+        #     float(context['col_degrees_total'][j1-1])/context['col_degrees_count'][j1-1],
+        #     float(context['box_degrees_total'][box1])/context['box_degrees_count'][box1]
+        # )
+        # value2 = min(
+        #     float(context['row_degrees_total'][i2-1])/context['row_degrees_count'][i2-1],
+        #     float(context['col_degrees_total'][j2-1])/context['col_degrees_count'][j2-1],
+        #     float(context['box_degrees_total'][box2])/context['box_degrees_count'][box2]
+        # )
+        value1 = context['row_degrees_total'][i1-1]
+        value1+= context['col_degrees_total'][j1-1]
+        value1+= context['box_degrees_total'][box1]
+        value2 = context['row_degrees_total'][i2-1]
+        value2+= context['col_degrees_total'][j2-1]
+        value2+= context['box_degrees_total'][box2]
+        # if value1 != value2:
+        #     if value1 < value2:
+        #         return -1
+        #     else:
+        #         return 1
 
         # sort 3: random, nondeterministic, AND totally ordered
-        hash1 = hash(item1)
-        hash2 = hash(item2)
+        #hash1 = hash(item1)
+        #hash2 = hash(item2)
+        # 4 bits per hex digit
+        # 64 bits is 16 hex digits
+        hexdigest1 = hashlib.sha224(str(item1)).hexdigest()[0:16]
+        hexdigest2 = hashlib.sha224(str(item2)).hexdigest()[0:16]
+        hash1 = int(hexdigest1, 16)
+        hash2 = int(hexdigest2, 16)
         # here is the nondeterministic part
         ndhash1 = hash1 ^ bitmask
         ndhash2 = hash2 ^ bitmask
@@ -239,20 +262,20 @@ class DegreeRowColBoxDegree2:
 
         all_guesses.sort(cmp=comparator)
 
-        print 'guess ordering debugging: begin'
-        solver.puzzle.printPuzzle()
-        print '--------------- 1'
+        # print 'guess ordering debugging: begin'
+        # solver.puzzle.printPuzzle()
+        # print '--------------- 1'
         # for i in range(1,10):
         #     for j in range(1,10):
         #         sq = solver.puzzle.getSquare(i,j)
         #         t = (i,j,str(sq.valuesRemaining()))
         #         print 'i/j/valuesremaining = %d/%d/%s' % t
-        print '--------------- 2'
-        print comparator_context
-        print '--------------- 3'
-        print all_guesses
-        print 'guess ordering debugging: end'
-        exit()
+        # print '--------------- 2'
+        # print comparator_context
+        # print '--------------- 3'
+        # print all_guesses
+        # print 'guess ordering debugging: end'
+        # exit()
 
         return all_guesses
 
