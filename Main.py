@@ -13,8 +13,9 @@ import sys
 import hashlib
 
 PUZZLES = (
+    SamplePuzzles.getById('sjm20190118'),
     #SamplePuzzles.getById('sjm20160310'),
-    SamplePuzzles.getById('worldshardest'),
+    #SamplePuzzles.getById('worldshardest'),
     #SamplePuzzles.getById('sjm20160304'),
     #SamplePuzzles.getById('7sudokuvd1'),
     #SamplePuzzles.getById('ss20160302h'),
@@ -30,7 +31,10 @@ def profileStrategy():
     Debug.DEBUG = 0
 
     strategies = (
-        GuessOrdering.DegreeRowColBoxDegree2(),
+        GuessOrdering.SimpleGuessOrderingByTuple2(range(2,10)),
+        #GuessOrdering.SimpleGuessOrderingByTuple2((6,5,4,3,2,7,8,9)),
+        #GuessOrdering.SimplePlusPairPriority2(),
+        #GuessOrdering.DegreeRowColBoxDegree2(),
         #GuessOrdering.DegreeRowColBoxDegree(True),
         #GuessOrdering.DegreeRowColBoxDegree(),
         #GuessOrdering.SimplePlusPairPriority(),
@@ -86,6 +90,11 @@ def profileStrategy():
         nps = uberresult[1]
         avg_time = uberresult[2]
         avg_guesses = uberresult[3]
+        print 'name=', name
+        print 'number_of_trials=', number_of_trials
+        print 'nps=', nps
+        print 'avg_time=', avg_time
+        print 'avg_guesses=', avg_guesses
         print name, number_of_trials, nps, avg_time, avg_guesses
 
 def runOnePuzzle():
@@ -106,6 +115,10 @@ def runOnePuzzle():
         pass
     pass
 
-profileStrategy()
+# to just run the solver on a puzzle
+runOnePuzzle()
+
+# to get search statistics
+#profileStrategy()
 
 exit()

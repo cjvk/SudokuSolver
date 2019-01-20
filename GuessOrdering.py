@@ -2,7 +2,195 @@ import Debug
 import random
 import hashlib
 
+class GuessOrderingBase:
+    def __all_guesses(self, solver):
+        guess_list = []
+        for i in range(1,10):
+            for j in range(1,10):
+                square = solver.puzzle.getSquare(i,j)
+                if not square.hasSingleValue():
+                    for value in square.valuesRemaining():
+                        guess_list.append((i,j,value))
+        return guess_list
+    def _ij_to_box(self, i, j):
+        # start in upper left, and "read down the page"
+        # 0-indexed
+        return (j-1)/3 + ((i-1)/3)*3
+    def __ij_position_in_box(self, i, j):
+        # i/j are 1-indexed
+        # return value is 0-indexed
+        i = (i-1) % 3
+        j = (j-1) % 3
+        return (3*i) + j
+    def __comparator_context(self, solver):
+        context_dict = {
+            'row_degrees_total' : [0] * 9,
+            'col_degrees_total' : [0] * 9,
+            'box_degrees_total' : [0] * 9,
+            'row_degrees_total_twoplus' : [0] * 9,
+            'col_degrees_total_twoplus' : [0] * 9,
+            'box_degrees_total_twoplus' : [0] * 9,
+            'row_degrees_count_twoplus' : [0] * 9,
+            'col_degrees_count_twoplus' : [0] * 9,
+            'box_degrees_count_twoplus' : [0] * 9,
+            'row_bitmap_dupes'  : [set()] * 9,
+            'col_bitmap_dupes'  : [set()] * 9,
+            'box_bitmap_dupes'  : [set()] * 9,
+        }
+        row_bitmaps_seen = [set()] * 9
+        col_bitmaps_seen = [set()] * 9
+        box_bitmaps_seen = [set()] * 9
+        for i in range(1,10):
+            for j in range(1,10):
+                square = solver.puzzle.getSquare(i,j)
+                degree = square.countRemaining()
+                bitmap = square.getBitmap()
+                context_dict[(i,j)] = (degree, bitmap)
+                # if seen already, add to dupes
+                if bitmap in row_bitmaps_seen[i-1]:
+                    context_dict['row_bitmap_dupes'][i-1].add(bitmap)
+                row_bitmaps_seen[i-1].add(bitmap)
+                if bitmap in col_bitmaps_seen[j-1]:
+                    context_dict['col_bitmap_dupes'][j-1].add(bitmap)
+                col_bitmaps_seen[j-1].add(bitmap)
+                box_number = self._ij_to_box(i,j)
+                if bitmap in box_bitmaps_seen[box_number]:
+                    context_dict['box_bitmap_dupes'][box_number].add(bitmap)
+                box_bitmaps_seen[box_number].add(bitmap)
+                # update totals
+                context_dict['row_degrees_total'][i-1]+=degree
+                context_dict['col_degrees_total'][j-1]+=degree
+                context_dict['box_degrees_total'][box_number]+=degree
+                # update the "two plus" totals for degree > 1
+                if degree != 1:
+                    context_dict['row_degrees_total_twoplus'][i-1]+=degree
+                    context_dict['row_degrees_count_twoplus'][i-1]+=1
+                    context_dict['col_degrees_total_twoplus'][j-1]+=degree
+                    context_dict['col_degrees_count_twoplus'][j-1]+=1
+                    context_dict['box_degrees_total_twoplus'][box_number]+=degree
+                    context_dict['box_degrees_count_twoplus'][box_number]+=1
+        return context_dict
+    def __random_total_order_comparator(self, item1, item2, random64bits):
+        "total ordering, randomized by the supplied 64 bit mask"
+        # 4 bits per hex digit (64 bits is 16 hex digits)
+        hexdigest1 = hashlib.sha224(str(item1)).hexdigest()[0:16]
+        hexdigest2 = hashlib.sha224(str(item2)).hexdigest()[0:16]
+        hash1 = int(hexdigest1, 16)
+        hash2 = int(hexdigest2, 16)
+        randomized_hash1 = hash1 ^ random64bits
+        randomized_hash2 = hash2 ^ random64bits
+        if randomized_hash1 < randomized_hash2:
+            return -1
+        if randomized_hash1 > randomized_hash2:
+            return 1
+        return 0
+    def guessList(self, solver):
+        all_guesses = self.__all_guesses(solver)
+        comparator_context = self.__comparator_context(solver)
+        random64bits = random.getrandbits(64) # returns a long
+        def comparator(item1, item2):
+            sort_response = self.primary_comparator(item1, item2, comparator_context)
+            if sort_response != 0:
+                return sort_response
+            return self.__random_total_order_comparator(item1, item2, random64bits)
+        all_guesses.sort(cmp=comparator)
+        return all_guesses
+
+class SimplePlusPairPriority2 (GuessOrderingBase):
+    def name(self):
+        return 'Simple_plus_pair2'
+    def primary_comparator(self, item1, item2, context):
+        # setup
+        ij1, ij2 = item1[0:2], item2[0:2]
+        i1, j1, i2, j2 = ij1[0], ij1[1], ij2[0], ij2[1]
+        item1degree, item2degree = context[ij1][0], context[ij2][0]
+        item1bitmap, item2bitmap = context[ij1][1], context[ij2][1]
+        item1boxnum, item2boxnum = self._ij_to_box(i1,j1), self._ij_to_box(i2,j2)
+
+        # sort 1: node degree
+        if item1degree != item2degree:
+            return item1degree - item2degree
+
+        # sort 2: (2 degree nodes only) prioritize duplicates
+        if item1degree is 2:
+            item1dupcount = 0
+            if item1bitmap in context['row_bitmap_dupes'][i1-1]:
+                item1dupcount += 1
+            if item1bitmap in context['col_bitmap_dupes'][j1-1]:
+                item1dupcount += 1
+            if item1bitmap in context['box_bitmap_dupes'][item1boxnum]:
+                item1dupcount += 1
+            item2dupcount = 0
+            if item2bitmap in context['row_bitmap_dupes'][i2-1]:
+                item2dupcount += 1
+            if item2bitmap in context['col_bitmap_dupes'][j2-1]:
+                item2dupcount += 1
+            if item2bitmap in context['box_bitmap_dupes'][item2boxnum]:
+                item2dupcount += 1
+            if item1dupcount != item2dupcount:
+                return item1dupcount - item2dupcount
+        return 0
+
+class DegreeRowColBoxDegree2 (GuessOrderingBase):
+    def name(self):
+        return 'DegreeRowColBoxDegree2'
+    def primary_comparator(self, item1, item2, context):
+        # setup
+        ij1, ij2 = item1[0:2], item2[0:2]
+        i1, j1, i2, j2 = ij1[0], ij1[1], ij2[0], ij2[1]
+        item1degree, item2degree = context[ij1][0], context[ij2][0]
+        item1bitmap, item2bitmap = context[ij1][1], context[ij2][1]
+        item1boxnum, item2boxnum = self._ij_to_box(i1,j1), self._ij_to_box(i2,j2)
+
+        # sort 1: node degree
+        if item1degree != item2degree:
+            return item1degree - item2degree
+
+        # sort 2: min total degree of row/col/box
+        item1mindegree = min(
+            context['row_degrees_total'][i1-1],
+            context['col_degrees_total'][j1-1],
+            context['row_degrees_total'][item1boxnum],
+        )
+        item2mindegree = min(
+            context['row_degrees_total'][i2-1],
+            context['col_degrees_total'][j2-1],
+            context['row_degrees_total'][item2boxnum],
+        )
+        if item1mindegree != item2mindegree:
+            return item1mindegree - item2mindegree
+
+        return 0
+
+class SimpleGuessOrderingByTuple2(GuessOrderingBase):
+    def __init__(self, orderingTuple):
+        self.orderingTuple = orderingTuple
+    def name(self):
+        return 'Simple2 ' + str(self.orderingTuple)
+    def primary_comparator(self, item1, item2, context):
+        # setup
+        ij1, ij2 = item1[0:2], item2[0:2]
+        item1degree, item2degree = context[ij1][0], context[ij2][0]
+
+        # sort: position of node degree in orderingTuple
+        item1pos = self.orderingTuple.index(item1degree)
+        item2pos = self.orderingTuple.index(item2degree)
+        if item1pos != item2pos:
+            return item1pos - item2pos
+
+        return 0
+
+############################################################
+#
+#                Below this: Archive
+#
+############################################################
+
 class SimplePlusPairPriority:
+    """
+    sort 1: node degree
+    sort 2: (2 degree only) prioritize pairs
+    """
     def name(self):
         return 'Simple plus pair'
     def guessList(self, solver):
@@ -143,7 +331,7 @@ class DegreeRowColBoxDegree:
 
         return self.__combine_guess_lists(guessListList)
 
-class DegreeRowColBoxDegree2:
+class DegreeRowColBoxDegree2_deprecated:
     def name(self):
         return 'DegreeRowColBoxDegree2'
     def __ij_to_box(self, i, j):
