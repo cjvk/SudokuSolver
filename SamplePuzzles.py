@@ -34,6 +34,21 @@ class PuzzleDescription:
 
 SAMPLE_PUZZLES = (
     PuzzleDescription(
+        id='from_a_20200126',
+        name='Sudoku.com text from A, 1/26/2020, difficulty: Hard',
+        puzzle=(
+            '69 14    ',
+            ' 156 3429',
+            ' 34    61',
+            ' 46     2',
+            '128936745',
+            ' 73  4  6',
+            '46 3 12  ',
+            ' 8 4  6 3',
+            '35 76 9 4',
+        )
+    ),
+    PuzzleDescription(
         id='sjm20190118',
         name='Mercury News, 1/18/2019, difficulty: 4/4',
         puzzle=(

@@ -13,7 +13,8 @@ import sys
 import hashlib
 
 PUZZLES = (
-    SamplePuzzles.getById('sjm20190118'),
+    SamplePuzzles.getById('from_a_20200126'),
+    #SamplePuzzles.getById('sjm20190118'),
     #SamplePuzzles.getById('sjm20160310'),
     #SamplePuzzles.getById('worldshardest'),
     #SamplePuzzles.getById('sjm20160304'),
