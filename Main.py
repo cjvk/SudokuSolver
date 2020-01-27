@@ -13,7 +13,8 @@ import sys
 import hashlib
 
 PUZZLES = (
-    SamplePuzzles.getById('from_a_20200126'),
+    SamplePuzzles.getById('from_a_20200126_testing'),
+    #SamplePuzzles.getById('from_a_20200126'),
     #SamplePuzzles.getById('sjm20190118'),
     #SamplePuzzles.getById('sjm20160310'),
     #SamplePuzzles.getById('worldshardest'),
@@ -96,14 +97,13 @@ def profileStrategy():
         print 'nps=', nps
         print 'avg_time=', avg_time
         print 'avg_guesses=', avg_guesses
-        print name, number_of_trials, nps, avg_time, avg_guesses
+        #print name, number_of_trials, nps, avg_time, avg_guesses
 
-def runOnePuzzle():
+def runOnePuzzle(orderingStrategy):
     for puzzle in PUZZLES:
         p = SudokuPuzzle(puzzle.getPuzzle())
         Debug.debug(puzzle.getName(),1)
         Debug.debugPrintPuzzle(p, 1)
-        orderingStrategy = GuessOrdering.SimpleGuessOrderingByTuple((4,3,2,5,6,7,8,9))
         s = Solver.Solver(p, orderingStrategy)
         time_start = time.time()
         s.solve()
@@ -116,10 +116,34 @@ def runOnePuzzle():
         pass
     pass
 
-# to just run the solver on a puzzle
-runOnePuzzle()
+def runOnePuzzleWithSearch():
+    runOnePuzzle(GuessOrdering.SimpleGuessOrderingByTuple((4,3,2,5,6,7,8,9)))
 
-# to get search statistics
-#profileStrategy()
+def runOnePuzzleWithoutSearch():
+    runOnePuzzle(GuessOrdering.NoGuesses())
 
-exit()
+MODES = {
+    '1' : {'f' : runOnePuzzleWithSearch},
+    '2' : {'f' : runOnePuzzleWithoutSearch},
+    '3' : {'f' : profileStrategy},
+    }
+
+def main():
+    print 'Welcome to SudokuSolver! Please make mode selection'
+    puzzle_name = PUZZLES[0].getName()
+    print ''
+    print 'selected sudoku: ' + puzzle_name
+    print '  1) solve sudoku'
+    print '  2) run solver with search disabled'
+    print '  3) run profiler against "World\'s hardest Sudoku"'
+    choice = raw_input()
+    if choice not in MODES.keys():
+        print 'did not understand ' + str(choice) + ', exiting'
+        exit()
+
+    f = MODES[choice]['f']
+
+    f()
+    pass
+
+main()

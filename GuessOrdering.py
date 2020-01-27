@@ -489,3 +489,9 @@ class SimpleGuessOrderingByTuple:
                 guessList.append(guess)
         return guessList
             
+class NoGuesses:
+    def name(self):
+        return 'No guesses, no search'
+    def guessList(self, solver):
+        guessList = []
+        return guessList

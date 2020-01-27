@@ -165,6 +165,10 @@ class Solver:
                     correctGuess = guess
                     break
                 if correctGuess is None:
+                    if isinstance(self.guessOrdering, GuessOrdering.NoGuesses):
+                        print 'no-search mode, progress:'
+                        self.puzzle.printPuzzle()
+                        exit()
                     raise Constraints.SudokuConstraintViolationError('guesses all wrong')
                 # apply the guess and continue
                 # this logic is kind of wrong - it seriously
