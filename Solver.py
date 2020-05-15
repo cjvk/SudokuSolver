@@ -156,6 +156,8 @@ class Solver:
                         possibleSolution = newSolver.solve()
                     except Constraints.SudokuConstraintViolationError:
                         self.puzzle.getSquare(i,j).eliminate(value)
+                        if self.puzzle.getSquare(i,j).countRemaining == 0:
+                            raise Constraints.SudokuConstraintViolationError('none left!')
                         continue
                     Debug.debug('right')
                     # possibleSolution seems to have the correct solution

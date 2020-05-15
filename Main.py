@@ -13,9 +13,9 @@ import sys
 import hashlib
 
 PUZZLES = (
-    SamplePuzzles.getById('from_a_20200126_testing'),
+    #SamplePuzzles.getById('from_a_20200126_testing'),
     #SamplePuzzles.getById('from_a_20200126'),
-    #SamplePuzzles.getById('sjm20190118'),
+    SamplePuzzles.getById('sjm20190118'),
     #SamplePuzzles.getById('sjm20160310'),
     #SamplePuzzles.getById('worldshardest'),
     #SamplePuzzles.getById('sjm20160304'),
@@ -34,6 +34,7 @@ def profileStrategy():
 
     strategies = (
         GuessOrdering.SimpleGuessOrderingByTuple2(range(2,10)),
+        GuessOrdering.SimpleGuessOrderingByTuple((2,4,3,5,6,7,8,9)),
         #GuessOrdering.SimpleGuessOrderingByTuple2((6,5,4,3,2,7,8,9)),
         #GuessOrdering.SimplePlusPairPriority2(),
         #GuessOrdering.DegreeRowColBoxDegree2(),
